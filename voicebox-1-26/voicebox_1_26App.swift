@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import UIKit
 
 @main
 struct voicebox_1_26App: App {
 
     @State private var audioRoomService = AudioRoomService()
+    @State private var chargingMonitor = ChargingMonitor()
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
@@ -19,19 +21,36 @@ struct voicebox_1_26App: App {
                 .onChange(of: scenePhase, initial: true) { _, newPhase in
                     handleScenePhase(newPhase)
                 }
+                .onChange(of: chargingMonitor.isCharging) { _, isCharging in
+                    handleChargingChange(isCharging)
+                }
         }
     }
 
     private func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .active:
-            Task { await audioRoomService.connect() }
+            // Only connect if charging
+            if chargingMonitor.isCharging {
+                Task { await audioRoomService.connect() }
+            }
         case .background:
             Task { await audioRoomService.disconnect() }
         case .inactive:
             break
         @unknown default:
             break
+        }
+    }
+
+    private func handleChargingChange(_ isCharging: Bool) {
+        // Only act if app is in foreground
+        guard scenePhase == .active else { return }
+
+        if isCharging {
+            Task { await audioRoomService.connect() }
+        } else {
+            Task { await audioRoomService.disconnect() }
         }
     }
 }
