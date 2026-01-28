@@ -15,16 +15,24 @@ struct ContentView: View {
 
     @State private var counter = 0
 
+    private var warmWhite: Color {
+        Color(red: 1.0, green: 0.95, blue: 0.85)
+    }
+
     var body: some View {
-        VStack(spacing: 20) {
-            audioRoomStatusView
+        ZStack {
+            // Background flash based on mic amplitude
+            if audioRoomService.isConnected {
+                Color.white
+                    .opacity(Double(audioRoomService.micAmplitude))
+            }
 
-            Divider()
-
-            markersView
-            compassView
+            VStack(spacing: 20) {
+                audioRoomStatusView
+            }
+            .padding()
         }
-        .padding()
+        .ignoresSafeArea()
     }
 
     // MARK: - Audio Room Status
@@ -70,42 +78,6 @@ struct ContentView: View {
             Text(label)
                 .font(.caption)
                 .foregroundStyle(isActive ? .primary : .secondary)
-        }
-    }
-
-    // MARK: - Existing Views
-
-    private var markersView: some View {
-        LazyVStack {
-            ForEach(markerService.markers) { marker in
-                Text("\(marker.name) at \(marker.heading)")
-            }
-        }
-    }
-
-    private var compassView: some View {
-        VStack {
-            Text(String(compassService.heading))
-
-            Button {
-                compassService.isStarted ? compassService.stop() : compassService.start()
-            } label: {
-                Text("start compass!~")
-            }
-
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-
-            Text("Hello, world!")
-
-            Button {
-                print("hello world")
-                counter += 1
-            } label: {
-                Text("press for haptics!")
-            }
-            .sensoryFeedback(.impact(weight: .heavy, intensity: 1), trigger: counter)
         }
     }
 }

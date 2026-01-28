@@ -8,6 +8,7 @@
 import Foundation
 import Observation
 import StreamVideo
+import AVFoundation
 internal import Combine
 
 @Observable
@@ -27,6 +28,7 @@ class AudioRoomService {
     private(set) var isLive: Bool = false
     private(set) var participantCount: Int = 0
     private(set) var error: String?
+    private(set) var micAmplitude: Float = 0.0
 
     // MARK: - Private
 
@@ -34,6 +36,10 @@ class AudioRoomService {
     private var call: Call?
     private var observationTask: Task<Void, Never>?
     private var isConnecting: Bool = false
+
+    // MARK: - Audio Metering
+
+    private var audioEngine: AVAudioEngine?
 
     // MARK: - Lifecycle
 
@@ -74,6 +80,9 @@ class AudioRoomService {
             isLive = true
             error = nil
 
+            // Start mic amplitude monitoring
+            startMicMetering()
+
             // Observe call state changes
             observationTask = Task { await observeCallState(call) }
 
@@ -84,6 +93,9 @@ class AudioRoomService {
     }
 
     func disconnect() async {
+        // Stop mic metering
+        stopMicMetering()
+
         // Cancel observation first
         observationTask?.cancel()
         observationTask = nil
@@ -107,6 +119,8 @@ class AudioRoomService {
 
     /// Force cleanup without checking isConnected - handles crash recovery
     private func forceCleanup() async {
+        stopMicMetering()
+
         observationTask?.cancel()
         observationTask = nil
 
@@ -127,5 +141,48 @@ class AudioRoomService {
             guard !Task.isCancelled else { return }
             participantCount = call.state.participants.count
         }
+    }
+
+    // MARK: - Mic Metering
+
+    private func startMicMetering() {
+        let audioEngine = AVAudioEngine()
+        self.audioEngine = audioEngine
+
+        let inputNode = audioEngine.inputNode
+        let format = inputNode.outputFormat(forBus: 0)
+
+        inputNode.installTap(onBus: 0, bufferSize: 4096, format: format) { [weak self] buffer, _ in
+            guard let self = self else { return }
+
+            let channelData = buffer.floatChannelData?[0]
+            let frameLength = Int(buffer.frameLength)
+
+            var sum: Float = 0
+            for i in 0..<frameLength {
+                let sample = channelData?[i] ?? 0
+                sum += sample * sample
+            }
+
+            let rms = sqrt(sum / Float(frameLength))
+            let rawAmplitude = min(rms * 5, 1.0) // Scale and clamp
+
+            DispatchQueue.main.async {
+                self.micAmplitude = rawAmplitude
+            }
+        }
+
+        do {
+            try audioEngine.start()
+        } catch {
+            self.error = "Mic metering failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func stopMicMetering() {
+        audioEngine?.inputNode.removeTap(onBus: 0)
+        audioEngine?.stop()
+        audioEngine = nil
+        micAmplitude = 0.0
     }
 }
