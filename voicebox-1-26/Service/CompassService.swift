@@ -13,7 +13,7 @@ import Observation
 class CompassService: NSObject, CLLocationManagerDelegate {
     
     var locationManager: CLLocationManager = CLLocationManager()
-    var heading: Double = 0.0
+    var heading: Int = 0
     var isStarted: Bool = false
     
     override init() {
@@ -23,7 +23,7 @@ class CompassService: NSObject, CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
-        heading = newHeading.magneticHeading
+        heading = Int(newHeading.magneticHeading)
     }
     
     func start() {

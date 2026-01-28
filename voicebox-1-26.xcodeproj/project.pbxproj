@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A5795CAB2F29E374002DDD8B /* StreamVideoSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = A5795CAA2F29E374002DDD8B /* StreamVideoSwiftUI */; };
+		A5795CAD2F29E385002DDD8B /* StreamVideo in Frameworks */ = {isa = PBXBuildFile; productRef = A5795CAC2F29E385002DDD8B /* StreamVideo */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A5795C082F2868EA002DDD8B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +57,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A5795CAD2F29E385002DDD8B /* StreamVideo in Frameworks */,
+				A5795CAB2F29E374002DDD8B /* StreamVideoSwiftUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +119,8 @@
 			);
 			name = "voicebox-1-26";
 			packageProductDependencies = (
+				A5795CAA2F29E374002DDD8B /* StreamVideoSwiftUI */,
+				A5795CAC2F29E385002DDD8B /* StreamVideo */,
 			);
 			productName = "voicebox-1-26";
 			productReference = A5795BFA2F2868E9002DDD8B /* voicebox-1-26.app */;
@@ -195,6 +204,9 @@
 			);
 			mainGroup = A5795BF12F2868E9002DDD8B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A5795CA92F29E374002DDD8B /* XCRemoteSwiftPackageReference "stream-video-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A5795BFB2F2868E9002DDD8B /* Products */;
 			projectDirPath = "";
@@ -401,6 +413,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use heading to show compass direction for locating friends.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voicebox uses your microphone for audio chatting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -434,6 +447,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use heading to show compass direction for locating friends.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voicebox uses your microphone for audio chatting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -580,6 +594,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A5795CA92F29E374002DDD8B /* XCRemoteSwiftPackageReference "stream-video-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/GetStream/stream-video-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.40.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A5795CAA2F29E374002DDD8B /* StreamVideoSwiftUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5795CA92F29E374002DDD8B /* XCRemoteSwiftPackageReference "stream-video-swift" */;
+			productName = StreamVideoSwiftUI;
+		};
+		A5795CAC2F29E385002DDD8B /* StreamVideo */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A5795CA92F29E374002DDD8B /* XCRemoteSwiftPackageReference "stream-video-swift" */;
+			productName = StreamVideo;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A5795BF22F2868E9002DDD8B /* Project object */;
 }
