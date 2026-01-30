@@ -5,17 +5,17 @@
 //  Created by Matthew Fang on 1/26/26.
 //
 //  WHAT THIS DOES:
-//  Detects if someone is standing in front of the iPhone's front camera.
+//  Detects if someone is standing in front of the iPhone's selfie (front) camera.
 //  Uses Apple's built-in face detection (AVCaptureMetadataOutput) which is:
 //  - Hardware-accelerated (low battery usage)
 //  - No ML models needed
 //  - Works reliably in normal lighting
 //
 //  HOW IT WORKS:
-//  1. Sets up a camera capture session with the front camera
+//  1. Sets up a capture session with the FRONT camera (selfie camera)
 //  2. Adds a metadata output that listens for face detection events
 //  3. When a face appears/disappears, updates `isSomeonePresent`
-//  4. Calls `onPresenceChanged` callback so AudioRoomService can broadcast it
+//  4. ContentView observes this to show the glow effect
 //
 
 import AVFoundation
@@ -26,7 +26,7 @@ class PresenceService: NSObject {
 
     // MARK: - Public State
 
-    /// True when a face is detected in front of the camera
+    /// True when a face is detected in front of the selfie camera
     private(set) var isSomeonePresent: Bool = false
 
     /// True when the camera is actively detecting
@@ -34,12 +34,6 @@ class PresenceService: NSObject {
 
     /// Any error that occurred during setup
     private(set) var error: String?
-
-    // MARK: - Callback
-
-    /// Called whenever presence state changes - use this to broadcast to other phones
-    /// This is set by AudioRoomService to send presence updates over the network
-    var onPresenceChanged: ((Bool) -> Void)?
 
     // MARK: - Private
 
@@ -179,11 +173,9 @@ extension PresenceService: AVCaptureMetadataOutputObjectsDelegate {
         // Check if any of the detected objects are faces
         let faceDetected = metadataObjects.contains { $0.type == .face }
 
-        // Only update and notify if the state actually changed
-        // This prevents spamming the network with duplicate updates
+        // Only update if the state actually changed
         if faceDetected != isSomeonePresent {
             isSomeonePresent = faceDetected
-            onPresenceChanged?(faceDetected)
         }
     }
 }

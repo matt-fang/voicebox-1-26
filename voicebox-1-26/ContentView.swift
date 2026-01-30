@@ -5,8 +5,8 @@
 //  Created by Matthew Fang on 1/26/26.
 //
 //  GLOW EFFECT:
-//  When someone is detected in front of the OTHER phone, this phone glows.
-//  The glow is a radial gradient that pulses when `remotePresenceDetected` is true.
+//  When someone is detected in front of THIS phone's selfie camera, it glows.
+//  Uses a pulsing radial gradient for a warm, inviting effect.
 //
 
 import SwiftUI
@@ -44,11 +44,7 @@ struct ContentView: View {
             .padding()
         }
         .onAppear {
-            // Wire up presence service to broadcast via audio room
-            presenceService.onPresenceChanged = { isPresent in
-                audioRoomService.sendPresenceUpdate(isPresent)
-            }
-            // Start detecting faces
+            // Start detecting faces via selfie camera
             presenceService.start()
         }
         .onDisappear {
@@ -58,11 +54,11 @@ struct ContentView: View {
 
     // MARK: - Glow Effect
 
-    /// Full-screen glow effect that appears when someone is at the other phone
+    /// Full-screen glow effect that appears when someone is in front of the selfie camera
     /// Uses a radial gradient that pulses for a breathing effect
     @ViewBuilder
     private var glowEffectView: some View {
-        if audioRoomService.remotePresenceDetected {
+        if presenceService.isSomeonePresent {
             RadialGradient(
                 gradient: Gradient(colors: [
                     Color.yellow.opacity(glowPulse ? 0.6 : 0.4),
@@ -128,35 +124,24 @@ struct ContentView: View {
 
     // MARK: - Presence Status
 
-    /// Shows local and remote presence detection status
-    /// Helpful for debugging and understanding the system state
+    /// Shows presence detection status (is someone in front of the selfie camera?)
     private var presenceStatusView: some View {
         VStack(spacing: 8) {
             Text("Presence")
                 .font(.headline)
 
-            HStack(spacing: 16) {
-                // Local: is someone in front of THIS phone?
-                statusIndicator(
-                    label: "Local",
-                    isActive: presenceService.isSomeonePresent,
-                    activeColor: .blue
-                )
+            statusIndicator(
+                label: presenceService.isSomeonePresent ? "Someone here" : "No one",
+                isActive: presenceService.isSomeonePresent,
+                activeColor: .yellow
+            )
 
-                // Remote: is someone in front of the OTHER phone?
-                statusIndicator(
-                    label: "Remote",
-                    isActive: audioRoomService.remotePresenceDetected,
-                    activeColor: .yellow
-                )
-            }
-
-            // Show presence service status
+            // Show camera status
             HStack(spacing: 4) {
                 Circle()
                     .fill(presenceService.isRunning ? .green : .gray)
                     .frame(width: 6, height: 6)
-                Text(presenceService.isRunning ? "Camera active" : "Camera off")
+                Text(presenceService.isRunning ? "Selfie camera active" : "Camera off")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

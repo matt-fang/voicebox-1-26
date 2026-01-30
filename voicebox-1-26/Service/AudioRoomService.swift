@@ -4,18 +4,6 @@
 //
 //  Created by Matthew Fang on 1/26/26.
 //
-//  WHAT THIS DOES:
-//  Manages the real-time audio connection between phones using GetStream.
-//  Now also handles presence detection broadcasting:
-//  - Sends local presence state (is someone in front of THIS phone?)
-//  - Receives remote presence state (is someone in front of OTHER phone?)
-//
-//  PRESENCE FLOW:
-//  1. PresenceService detects face → calls sendPresenceUpdate(true)
-//  2. This sends a custom event over GetStream to all participants
-//  3. Other phone receives event → updates `remotePresenceDetected`
-//  4. ContentView observes `remotePresenceDetected` → shows glow effect
-//
 
 import Foundation
 import Observation
@@ -40,22 +28,12 @@ class AudioRoomService {
     private(set) var participantCount: Int = 0
     private(set) var error: String?
 
-    // MARK: - Presence State
-
-    /// True when someone is detected in front of the OTHER phone
-    /// ContentView observes this to show the glow effect
-    private(set) var remotePresenceDetected: Bool = false
-
     // MARK: - Private
 
     private var client: StreamVideo?
     private var call: Call?
     private var observationTask: Task<Void, Never>?
-    private var presenceObservationTask: Task<Void, Never>?
     private var isConnecting: Bool = false
-
-    /// Key used in custom events to identify presence data
-    private let presenceEventKey = "presence_detected"
 
     // MARK: - Lifecycle
 
@@ -96,11 +74,8 @@ class AudioRoomService {
             isLive = true
             error = nil
 
-            // Observe call state changes (participant count)
+            // Observe call state changes
             observationTask = Task { await observeCallState(call) }
-
-            // Observe custom events (presence updates from other phones)
-            presenceObservationTask = Task { await observePresenceEvents(call) }
 
         } catch {
             self.error = error.localizedDescription
@@ -108,31 +83,10 @@ class AudioRoomService {
         }
     }
 
-    // MARK: - Presence Broadcasting
-
-    /// Send presence state to other phones in the call
-    /// Called by PresenceService whenever someone appears/disappears from camera
-    func sendPresenceUpdate(_ isPresent: Bool) {
-        guard isConnected, let call = call else { return }
-
-        Task {
-            do {
-                // Send custom event with presence data
-                // All other participants in the call will receive this
-                try await call.sendCustomEvent([presenceEventKey: .bool(isPresent)])
-            } catch {
-                // Don't surface this error to UI - presence is best-effort
-                print("Failed to send presence update: \(error)")
-            }
-        }
-    }
-
     func disconnect() async {
-        // Cancel all observation tasks first
+        // Cancel observation first
         observationTask?.cancel()
         observationTask = nil
-        presenceObservationTask?.cancel()
-        presenceObservationTask = nil
 
         guard isConnected, let call = call else { return }
 
@@ -147,7 +101,6 @@ class AudioRoomService {
         isConnected = false
         isLive = false
         participantCount = 0
-        remotePresenceDetected = false
     }
 
     // MARK: - Private
@@ -156,8 +109,6 @@ class AudioRoomService {
     private func forceCleanup() async {
         observationTask?.cancel()
         observationTask = nil
-        presenceObservationTask?.cancel()
-        presenceObservationTask = nil
 
         if let call = call {
             try? await call.leave()
@@ -168,7 +119,6 @@ class AudioRoomService {
         isConnected = false
         isLive = false
         participantCount = 0
-        remotePresenceDetected = false
     }
 
     @MainActor
@@ -176,31 +126,6 @@ class AudioRoomService {
         for await _ in call.state.$participants.values {
             guard !Task.isCancelled else { return }
             participantCount = call.state.participants.count
-        }
-    }
-
-    /// Listen for custom events from other participants
-    /// When another phone sends a presence update, we receive it here
-    @MainActor
-    private func observePresenceEvents(_ call: Call) async {
-        // Subscribe to custom events on this call
-        for await event in call.subscribe(for: CustomVideoEvent.self) {
-            guard !Task.isCancelled else { return }
-
-            // Extract presence data from the custom event
-            // The event contains the data we sent via sendCustomEvent()
-            if let presenceValue = event.custom[presenceEventKey] {
-                // Handle different possible value types from the API
-                switch presenceValue {
-                case .bool(let isPresent):
-                    remotePresenceDetected = isPresent
-                case .string(let str):
-                    // Fallback: some APIs send booleans as strings
-                    remotePresenceDetected = (str == "true" || str == "1")
-                default:
-                    break
-                }
-            }
         }
     }
 }
