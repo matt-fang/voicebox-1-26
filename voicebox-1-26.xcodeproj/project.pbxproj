@@ -412,6 +412,7 @@
 				DEVELOPMENT_TEAM = G2CVP4KJ2Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used for presence glowing effect.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use heading to show compass direction for locating friends.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voicebox uses your microphone for audio chatting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -446,6 +447,7 @@
 				DEVELOPMENT_TEAM = G2CVP4KJ2Q;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Used for presence glowing effect.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We use heading to show compass direction for locating friends.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Voicebox uses your microphone for audio chatting.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
